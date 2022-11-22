@@ -112,12 +112,16 @@ public class ServerGUI extends JFrame
 
 		// Set up database connection
 		Database database = new Database();
+		
+		// Create game controller.
+		GameMaster gameMaster = new GameMaster();
 
 		// Set up the chat server object.
 		server = new GameServer();
 		server.setLog(log);
 		server.setStatus(status);
 		server.setDatabase(database);
+		server.setGameMaster(gameMaster);
 	}
 
 	// Main function that creates a server GUI when the program is started.
