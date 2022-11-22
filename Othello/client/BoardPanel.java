@@ -62,7 +62,6 @@ public class BoardPanel extends JPanel
 					gameSquares[count].setActionCommand(String.valueOf(count));
 					gameSquares[count].setPreferredSize(buttonSize);
 					gameSquares[count].addActionListener(controller);
-					//gameSquares[count].setEnabled(false);
 					grid.add(gameSquares[count]);
 					
 				} else if (y == 5 && x == 4 || y == 4 && x == 5)
@@ -71,7 +70,6 @@ public class BoardPanel extends JPanel
 					gameSquares[count].setActionCommand(String.valueOf(count));
 					gameSquares[count].setPreferredSize(buttonSize);
 					gameSquares[count].addActionListener(controller);
-					//gameSquares[count].setEnabled(false);
 					grid.add(gameSquares[count]);
 				} else
 				{
@@ -79,7 +77,6 @@ public class BoardPanel extends JPanel
 					gameSquares[count].setActionCommand(String.valueOf(count));
 					gameSquares[count].setPreferredSize(buttonSize);
 					gameSquares[count].addActionListener(controller);
-					//gameSquares[count].setEnabled(false);
 					grid.add(gameSquares[count]);
 				}
 				count++;
@@ -93,13 +90,29 @@ public class BoardPanel extends JPanel
 				
 		// Create info panel in the south
 		JPanel southPanel = new JPanel();
-		gameInfo = new JLabel("Your turn", JLabel.CENTER);
+		gameInfo = new JLabel("", JLabel.CENTER);
 		southPanel.add(gameInfo);
 		this.add(southPanel, BorderLayout.SOUTH);
 		
-		this.setPreferredSize(new Dimension(750, 550));
+		this.setPreferredSize(new Dimension(750, 550)); // not needed, set by container.
 		this.setVisible(true);		
 		
+	}
+	
+	public JButton[] getSquares()
+	{
+		return gameSquares;
+	}
+	
+	public void setScore(String black, String white)
+	{
+		blackScore.setText(black);
+		whiteScore.setText(white);
+	}
+	
+	public void setInfo(String message)
+	{
+		gameInfo.setText(message);
 	}
 	
 	
