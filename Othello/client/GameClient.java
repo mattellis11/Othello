@@ -1,6 +1,7 @@
 package client;
 
 import ocsf.client.AbstractClient;
+import server.GameData;
 
 public class GameClient extends AbstractClient
 {
@@ -9,6 +10,7 @@ public class GameClient extends AbstractClient
 	private CreateAccountControl createAccountControl;
 	private GameLobbyControl gameLobbyControl;
 	private BoardControl boardControl;
+		
 
 	GameClient()
 	{
@@ -55,6 +57,19 @@ public class GameClient extends AbstractClient
 				createAccountControl.displayError(error.getMessage());
 			}
 		}
+		
+		// If we receive game data
+		else if (arg0 instanceof GameData)
+		{
+			// Get the GameData object.
+			GameData data = (GameData) arg0;
+			
+			// Pass data to BoardControl.
+			boardControl.setGameData(data);
+			
+			// Update the game state.
+			boardControl.setGameState();
+		}
 
 	}
 
@@ -77,5 +92,7 @@ public class GameClient extends AbstractClient
 	{
 		boardControl = bc;
 	}
+	
+	
 
 }
