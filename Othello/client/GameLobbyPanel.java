@@ -5,19 +5,29 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+
 import java.awt.Dimension;
 import java.awt.BorderLayout;
 import javax.swing.SwingConstants;
+
+import server.GameData;
+import server.Player;
+
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.ArrayList;
+
 import javax.swing.JButton;
 import java.awt.Component;
 import javax.swing.Box;
 
 public class GameLobbyPanel extends JPanel
-{
-	private JList<Object> onlineList; // use Player objects
-	private JList<Object> joinList;
+{	
+	private DefaultListModel onlineListModel;
+	private DefaultListModel waitingListModel;
+	private JList onlineList;
+	private JList waitingList;
 
 	public GameLobbyPanel(GameLobbyControl glc)
 	{
@@ -41,16 +51,12 @@ public class GameLobbyPanel extends JPanel
 		onlineListPanel.setBounds(245, 34, 260, 135);
 		add(onlineListPanel);
 		
-		JScrollPane onlineScrollPane = new JScrollPane();
+		onlineListModel = new DefaultListModel<>();
+		onlineList = new JList(onlineListModel);		
+		JScrollPane onlineScrollPane = new JScrollPane(onlineList);
 		onlineScrollPane.setPreferredSize(new Dimension(250, 125));
 		onlineScrollPane.setMinimumSize(new Dimension(250, 75));
-		onlineListPanel.add(onlineScrollPane);
-		
-		onlineList = new JList<Object>(); // use Player objects
-		onlineScrollPane.setViewportView(onlineList);
-		
-		
-		
+		onlineListPanel.add(onlineScrollPane);		
 		
 		// Join Game Components 
 		JPanel joinLabelPanel = new JPanel();
@@ -58,7 +64,7 @@ public class GameLobbyPanel extends JPanel
 		joinLabelPanel.setPreferredSize(new Dimension(750, 25));
 		add(joinLabelPanel);
 		
-		JLabel joinLabel = new JLabel("Players Waiting For Another Player To Join A Game", JLabel.CENTER);
+		JLabel joinLabel = new JLabel("Players Waiting For Opponents", JLabel.CENTER);
 		joinLabel.setFont(new Font("Tahoma", Font.BOLD, 12));
 		joinLabel.setPreferredSize(new Dimension(350, 14));
 		joinLabel.setMinimumSize(new Dimension(350, 14));
@@ -68,17 +74,15 @@ public class GameLobbyPanel extends JPanel
 		joinListPanel.setBounds(245, 204, 260, 135);
 		add(joinListPanel);
 		
-		JScrollPane joinScrollPane = new JScrollPane();
+		waitingListModel = new DefaultListModel<>();
+		waitingList = new JList(waitingListModel);
+		JScrollPane joinScrollPane = new JScrollPane(waitingList);
 		joinScrollPane.setPreferredSize(new Dimension(250, 125));
 		joinListPanel.add(joinScrollPane);
 		
-		joinList = new JList<Object>();
-		joinScrollPane.setViewportView(joinList);
-		
-		
 		// Button Panel Components 
 		JPanel buttonPanel = new JPanel();
-		buttonPanel.setBounds(0, 344, 750, 120);
+		buttonPanel.setBounds(0, 344, 750, 90);
 		buttonPanel.setPreferredSize(new Dimension(750, 120));
 		add(buttonPanel);
 		
@@ -108,7 +112,72 @@ public class GameLobbyPanel extends JPanel
 		logoutButtonPanel.add(logoutButton);
 		
 		//  Finalize JPanel 
+		this.setSize(750, 625);
+		
+		JPanel instructionsPanel = new JPanel();
+		instructionsPanel.setBounds(29, 444, 711, 129);
+		add(instructionsPanel);
+		instructionsPanel.setLayout(null);
+		
+		JLabel lblNewLabel = new JLabel("Instructions:");
+		lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 9));
+		lblNewLabel.setBounds(10, 0, 139, 13);
+		instructionsPanel.add(lblNewLabel);
+		
+		JLabel lblNewLabel_1 = new JLabel("Press 'Start Game' to create a new game and add your username to the 'Players Waiting For Opponents' list. Once another player joins, the game will begin.");
+		lblNewLabel_1.setFont(new Font("Tahoma", Font.BOLD, 8));
+		lblNewLabel_1.setBounds(10, 23, 691, 13);
+		instructionsPanel.add(lblNewLabel_1);
+		
+		JLabel lblNewLabel_2 = new JLabel("To join a new game, choose the player you would like to challenge from the 'Players Waiting For Opponents' list. Then press 'Join Game'.");
+		lblNewLabel_2.setFont(new Font("Tahoma", Font.BOLD, 8));
+		lblNewLabel_2.setBounds(10, 46, 663, 13);
+		instructionsPanel.add(lblNewLabel_2);
+		
+		JLabel lblNewLabel_3 = new JLabel("Press 'Quit' to log out and exit the game.");
+		lblNewLabel_3.setFont(new Font("Tahoma", Font.BOLD, 8));
+		lblNewLabel_3.setBounds(10, 69, 299, 13);
+		instructionsPanel.add(lblNewLabel_3);
     this.setVisible(true);
 	}
+	
+	public JList getOnlineList()
+	{
+		return onlineList;
+	}
+	
+	public JList getWaitingList()
+	{
+		return waitingList;
+	}
 
+	public DefaultListModel getOnlineListModel()
+	{
+		return onlineListModel;
+	}
+
+	public DefaultListModel getWaitingListModel()
+	{
+		return waitingListModel;
+	}
+
+	public void updateLists(GameLobbyData data)
+	{
+		ArrayList<Player> online = data.getOnline();
+		ArrayList<Player> waiting = data.getWaiting();
+		
+		onlineListModel.clear();
+		waitingListModel.clear();
+		
+		for (Player player: online)
+		{
+			onlineListModel.addElement(player.getUsername());
+		}
+		
+		for (Player player: waiting)
+		{
+			waitingListModel.addElement(player.getUsername());
+		}
+		
+	}	
 }
