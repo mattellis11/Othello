@@ -30,7 +30,7 @@ public class LoginControl implements ActionListener
     if (command == "Cancel")
     {
       CardLayout cardLayout = (CardLayout)container.getLayout();
-      cardLayout.show(container, "1");
+      cardLayout.show(container, "initial");
     }
 
     // The Submit button submits the login information to the server.
@@ -56,6 +56,7 @@ public class LoginControl implements ActionListener
       {
         displayError("Error connecting to the server.");
       }
+      
     }
 
 	}
@@ -64,7 +65,7 @@ public class LoginControl implements ActionListener
   public void loginSuccess()
   {
     CardLayout cardLayout = (CardLayout)container.getLayout();
-    cardLayout.show(container, "4");
+    cardLayout.show(container, "lobby");
   }
 
   // Method that displays a message in the error label.
