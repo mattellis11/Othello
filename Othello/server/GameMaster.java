@@ -22,11 +22,9 @@ public class GameMaster
 	}
 	
 	// Method for initializing a new game. Sets starting positions and scores.
-	public GameData newGame()
-	{
-		GameData data = new GameData();
-		
-		// Set up starting board.
+	public GameData newGame(Player player1, Player player2)
+	{		
+		// Initialize the starting board positions.
 		int[][] boardState = new int[8][8];
 		for (int y = 1; y < 9; y++)
 		{
@@ -34,23 +32,29 @@ public class GameMaster
 			{
 				if (y == 4 && x == 4 || y == 5 && x == 5)
 				{
-					boardState[y][x] = WHITE;					
+					boardState[y - 1][x - 1] = WHITE;					
 				} 
 				else if (y == 5 && x == 4 || y == 4 && x == 5)
 				{
-					boardState[y][x] = BLACK;
+					boardState[y - 1][x - 1] = BLACK;
 				} 
 				else
 				{
-					boardState[y][x] = EMPTY;
+					boardState[y - 1][x - 1] = EMPTY;
 				}
 			}			
 		}
 		
-		// Set starting black and white scores.
-		data.setBlackScore(2);
-		data.setWhiteScore(2);		
+		// Initialize available moves for black.
+		int[][] available = availableMoves(boardState, BLACK);
 		
+		// Assign players their color.
+		int player1Color = (int) (Math.random() * 2);
+		int player2Color = player1Color == BLACK ? WHITE : BLACK;
+		player1.setColor(player1Color);
+		player2.setColor(player2Color);
+		
+		GameData data = new GameData(player1, player2, boardState, available);		
 		return data;
 	}
 	
@@ -60,31 +64,48 @@ public class GameMaster
 		int playedColor = color;
 		int opponentColor = playedColor == BLACK ? WHITE : BLACK;
 		Position newPiece = data.getMove();
-		Stack<Position> toFlip;
+		Stack<Position> piecesToFlip;
 		
-		toFlip = check4FlipUpLeft(newPiece, playedColor, opponentColor, data.getBoardState());
-		data = flipPieces(toFlip, data, playedColor);
+		// Place the new piece
+		data.getBoardState()[newPiece.y][newPiece.x] = playedColor;
 		
-		toFlip = check4FlipUp(newPiece, playedColor, opponentColor, data.getBoardState());
-		data = flipPieces(toFlip, data, playedColor);
+		// Adjust the score.
+		if (playedColor == BLACK)
+		{
+			data.setBlackScore(data.getBlackScore() + 1);
+		}
+		else
+		{
+			data.setWhiteScore(data.getWhiteScore() + 1);
+		}
 		
-		toFlip = check4FlipUpRight(newPiece, playedColor, opponentColor, data.getBoardState());
-		data = flipPieces(toFlip, data, playedColor);
+		// Flip opponents pieces
+		piecesToFlip = check4FlipUpLeft(newPiece, playedColor, opponentColor, data.getBoardState());
+		if (piecesToFlip != null) data = flipPieces(piecesToFlip, data, playedColor);
 		
-		toFlip = check4FlipLeft(newPiece, playedColor, opponentColor, data.getBoardState());
-		data = flipPieces(toFlip, data, playedColor);
+		piecesToFlip = check4FlipUp(newPiece, playedColor, opponentColor, data.getBoardState());
+		if (piecesToFlip != null) data = flipPieces(piecesToFlip, data, playedColor);
 		
-		toFlip = check4FlipRight(newPiece, playedColor, opponentColor, data.getBoardState());
-		data = flipPieces(toFlip, data, playedColor);
+		piecesToFlip = check4FlipUpRight(newPiece, playedColor, opponentColor, data.getBoardState());
+		if (piecesToFlip != null) data = flipPieces(piecesToFlip, data, playedColor);
 		
-		toFlip = check4FlipDownLeft(newPiece, playedColor, opponentColor, data.getBoardState());
-		data = flipPieces(toFlip, data, playedColor);
+		piecesToFlip = check4FlipLeft(newPiece, playedColor, opponentColor, data.getBoardState());
+		if (piecesToFlip != null) data = flipPieces(piecesToFlip, data, playedColor);
 		
-		toFlip = check4FlipDown(newPiece, playedColor, opponentColor, data.getBoardState());
-		data = flipPieces(toFlip, data, playedColor);
+		piecesToFlip = check4FlipRight(newPiece, playedColor, opponentColor, data.getBoardState());
+		if (piecesToFlip != null) data = flipPieces(piecesToFlip, data, playedColor);
 		
-		toFlip = check4FlipDownRight(newPiece, playedColor, opponentColor, data.getBoardState());
-		data = flipPieces(toFlip, data, playedColor);
+		piecesToFlip = check4FlipDownLeft(newPiece, playedColor, opponentColor, data.getBoardState());
+		if (piecesToFlip != null) data = flipPieces(piecesToFlip, data, playedColor);
+		
+		piecesToFlip = check4FlipDown(newPiece, playedColor, opponentColor, data.getBoardState());
+		if (piecesToFlip != null) data = flipPieces(piecesToFlip, data, playedColor);
+		
+		piecesToFlip = check4FlipDownRight(newPiece, playedColor, opponentColor, data.getBoardState());
+		if (piecesToFlip != null) data = flipPieces(piecesToFlip, data, playedColor);
+		
+		// Update the available moves for the next turn.
+		data.setValidMoves(availableMoves(data.boardState, opponentColor));
 		
 		return data;
 	}
@@ -108,12 +129,12 @@ public class GameMaster
 		// Adjust the scores.
 		if (playedColor == BLACK)
 		{
-			data.setBlackScore(data.getBlackScore() + numOfPiecesFlipped + 1);
+			data.setBlackScore(data.getBlackScore() + numOfPiecesFlipped);
 			data.setWhiteScore(data.getWhiteScore() - numOfPiecesFlipped);
 		}
 		else
 		{
-			data.setWhiteScore(data.getWhiteScore() + numOfPiecesFlipped + 1);
+			data.setWhiteScore(data.getWhiteScore() + numOfPiecesFlipped);
 			data.setBlackScore(data.getBlackScore() - numOfPiecesFlipped);
 		}
 		
@@ -135,7 +156,7 @@ public class GameMaster
 		while (state[positionToCheck.y][positionToCheck.x] == opponentColor)
 		{
 			// Add opponents piece to the stack.
-			toFlip.add(positionToCheck);
+			toFlip.add(new Position(positionToCheck.x, positionToCheck.y));
 		 
 		 	// Check the next position.
 		 	positionToCheck.x = positionToCheck.x - 1;
@@ -166,7 +187,7 @@ public class GameMaster
 		while (state[positionToCheck.y][positionToCheck.x] == opponentColor)
 		{
 			// Add opponents piece to the stack.
-			toFlip.add(positionToCheck);
+			toFlip.add(new Position(positionToCheck.x, positionToCheck.y));
 		 
 		 	// Check the next position.
 		 	positionToCheck.x = positionToCheck.x;
@@ -197,7 +218,7 @@ public class GameMaster
 		while (state[positionToCheck.y][positionToCheck.x] == opponentColor)
 		{
 			// Add opponents piece to the stack.
-			toFlip.add(positionToCheck);
+			toFlip.add(new Position(positionToCheck.x, positionToCheck.y));
 		 
 		 	// Check the next position.
 		 	positionToCheck.x = positionToCheck.x + 1;
@@ -228,7 +249,7 @@ public class GameMaster
 		while (state[positionToCheck.y][positionToCheck.x] == opponentColor)
 		{
 			// Add opponents piece to the stack.
-			toFlip.add(positionToCheck);
+			toFlip.add(new Position(positionToCheck.x, positionToCheck.y));
 		 
 		 	// Check the next position.
 		 	positionToCheck.x = positionToCheck.x - 1;
@@ -259,7 +280,7 @@ public class GameMaster
 		while (state[positionToCheck.y][positionToCheck.x] == opponentColor)
 		{
 			// Add opponents piece to the stack.
-			toFlip.add(positionToCheck);
+			toFlip.add(new Position(positionToCheck.x, positionToCheck.y));
 		 
 		 	// Check the next position.
 		 	positionToCheck.x = positionToCheck.x + 1;
@@ -290,7 +311,7 @@ public class GameMaster
 		while (state[positionToCheck.y][positionToCheck.x] == opponentColor)
 		{
 			// Add opponents piece to the stack.
-			toFlip.add(positionToCheck);
+			toFlip.add(new Position(positionToCheck.x, positionToCheck.y));
 		 
 		 	// Check the next position.
 		 	positionToCheck.x = positionToCheck.x - 1;
@@ -321,7 +342,7 @@ public class GameMaster
 		while (state[positionToCheck.y][positionToCheck.x] == opponentColor)
 		{
 			// Add opponents piece to the stack.
-			toFlip.add(positionToCheck);
+			toFlip.add(new Position(positionToCheck.x, positionToCheck.y));
 		 
 		 	// Check the next position.
 		 	positionToCheck.x = positionToCheck.x;
@@ -352,7 +373,7 @@ public class GameMaster
 		while (state[positionToCheck.y][positionToCheck.x] == opponentColor)
 		{
 			// Add opponents piece to the stack.
-			toFlip.add(positionToCheck);
+			toFlip.add(new Position(positionToCheck.x, positionToCheck.y));
 		 
 		 	// Check the next position.
 		 	positionToCheck.x = positionToCheck.x + 1;
@@ -394,22 +415,22 @@ public class GameMaster
 					if (up != null) validMoves[up.y][up.x] = VALID;
 					
 					Position upperRight = checkUpRight(position, color, state);
-					if (upperRight != null) validMoves[up.y][up.x] = VALID;
+					if (upperRight != null) validMoves[upperRight.y][upperRight.x] = VALID;
 					
 					Position left = checkLeft(position, color, state);
-					if (left != null) validMoves[up.y][up.x] = VALID;
+					if (left != null) validMoves[left.y][left.x] = VALID;
 					
 					Position right = checkRight(position, color, state);
-					if (right != null) validMoves[up.y][up.x] = VALID;
+					if (right != null) validMoves[right.y][right.x] = VALID;
 					
 					Position downLeft = checkDownLeft(position, color, state);
-					if (downLeft != null) validMoves[up.y][up.x] = VALID;
+					if (downLeft != null) validMoves[downLeft.y][downLeft.x] = VALID;
 					
 					Position down = checkDown(position, color, state);
-					if (down != null) validMoves[up.y][up.x] = VALID;
+					if (down != null) validMoves[down.y][down.x] = VALID;
 					
 					Position downRight = checkDownRight(position, color, state);
-					if (downRight != null) validMoves[up.y][up.x] = VALID;
+					if (downRight != null) validMoves[downRight.y][downRight.x] = VALID;
 					
 				}				
 			}
