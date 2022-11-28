@@ -1,7 +1,10 @@
 package client;
 
+import java.util.ArrayList;
+
 import ocsf.client.AbstractClient;
 import server.GameData;
+import server.Player;
 
 public class GameClient extends AbstractClient
 {
@@ -10,6 +13,9 @@ public class GameClient extends AbstractClient
 	private CreateAccountControl createAccountControl;
 	private GameLobbyControl gameLobbyControl;
 	private BoardControl boardControl;
+	
+	private ArrayList<Player> online;
+	private ArrayList<Player> waiting;
 		
 
 	GameClient()
@@ -38,6 +44,19 @@ public class GameClient extends AbstractClient
 				createAccountControl.createAccountSuccess();
 			}
 		}
+		
+		// If we are receiving LoginData, then we have successfully logged in
+		else if (arg0 instanceof LoginData)
+		{
+			LoginData data = (LoginData) arg0;
+			
+			// Send the player's username to the GameLobbyControl.
+			//gameLobbyControl.setUsername(data.getUsername());
+			gameLobbyControl.setPlayer(data.getPlayer());
+			
+			// Successfully logged in, tell the login controller.
+			loginControl.loginSuccess();
+		}
 
 		// If we received an Error, figure out where to display it.
 		else if (arg0 instanceof Error)
@@ -57,10 +76,21 @@ public class GameClient extends AbstractClient
 				createAccountControl.displayError(error.getMessage());
 			}
 		}
-		
-		// If we receive game data
-		else if (arg0 instanceof GameData)
+		else if (arg0 instanceof GameLobbyData)
 		{
+			GameLobbyData gld = (GameLobbyData) arg0;
+			setOnline(gld.getOnline());
+			setWaiting(gld.getWaiting());
+			gameLobbyControl.updateGameLobby(gld);
+		}
+		else if (arg0 instanceof GameData)
+		{			
+			// If first time receiving GameData
+			if (boardControl.getGameData() == null)
+			{
+				gameLobbyControl.startGame(); // load game panel
+			}
+			
 			// Get the GameData object.
 			GameData data = (GameData) arg0;
 			
@@ -92,7 +122,25 @@ public class GameClient extends AbstractClient
 	{
 		boardControl = bc;
 	}
-	
-	
+
+	public ArrayList<Player> getOnline()
+	{
+		return online;
+	}
+
+	public void setOnline(ArrayList<Player> online)
+	{
+		this.online = online;
+	}
+
+	public ArrayList<Player> getWaiting()
+	{
+		return waiting;
+	}
+
+	public void setWaiting(ArrayList<Player> waiting)
+	{
+		this.waiting = waiting;
+	}	
 
 }
