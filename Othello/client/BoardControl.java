@@ -32,7 +32,7 @@ public class BoardControl implements ActionListener
 	// Constant for valid move array.
 	private static final int VALID = 99;	
 	
-	private GameData data;
+	private GameData data = null;
 	
 	
 	public BoardControl(JPanel container, GameClient client)
@@ -118,17 +118,18 @@ public class BoardControl implements ActionListener
 		else
 		{
 			panel.setInfo("Opponent's turn.");
-		}		
-		
-		// Show board panel. ***Probably not needed.
-		CardLayout cardLayout = (CardLayout) container.getLayout();
-		cardLayout.show(container, "5");
+		}
 		
 	}	
 
 	public void setGameData(GameData data)
 	{
 		this.data = data;
+	}
+	
+	public GameData getGameData()
+	{
+		return data;
 	}
 
 }
