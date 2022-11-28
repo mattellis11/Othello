@@ -3,7 +3,9 @@
  */
 package server;
 
-public class GameData
+import java.io.Serializable;
+
+public class GameData implements Serializable
 {
 	Player player1;
 	Player player2; 	
@@ -13,6 +15,17 @@ public class GameData
 	int blackScore;  
 	int whiteScore; 
 	Position move; // position of piece placed by the active player
+	
+	public GameData(Player player1, Player player2, int[][] boardState, int[][] validMoves)
+	{
+		setPlayer1(player1);
+		setPlayer2(player2);
+		setBoardState(boardState);
+		setValidMoves(validMoves);
+		setBlackScore(2);
+		setWhiteScore(2);
+		setActivePlayer(false);
+	}
 	
 	
 	public int[][] getBoardState()
@@ -59,7 +72,6 @@ public class GameData
 	{
 		return activePlayer;
 	}
-
 	
 	public int getBlackScore()
 	{
@@ -99,7 +111,6 @@ public class GameData
 	public void setWhiteScore(int whiteScore)
 	{
 		this.whiteScore = whiteScore;
-	}
-	
+	}	
 	
 }
