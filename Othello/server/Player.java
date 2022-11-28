@@ -1,15 +1,16 @@
 package server;
 
-public class Player
+import java.io.Serializable;
+
+public class Player implements Serializable
 {
 	private int color; // 1=black, 0=white
 	private String username;
 	private long clientID;
 	
 	
-	public Player(int color, String username, long clientID)
-	{
-		this.color = color;
+	public Player(String username, long clientID)
+	{		
 		this.username = username;
 		this.clientID = clientID;
 	}
@@ -37,5 +38,9 @@ public class Player
 	public void setClientID(long clientID)
 	{
 		this.clientID = clientID;
+	}
+	public boolean equals(Player player)
+	{
+		return this.getUsername().equals(player.getUsername());
 	}
 }
