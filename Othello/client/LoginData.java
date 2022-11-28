@@ -2,11 +2,13 @@ package client;
 
 import java.io.Serializable;
 
+import server.Player;
+
 public class LoginData implements Serializable
 {
-  // Private data fields for the username and password.
   private String username;
   private String password;
+  private Player player; // Player data received once user is successfully logged in
   
   // Getters for the username and password.
   public String getUsername()
@@ -34,5 +36,15 @@ public class LoginData implements Serializable
     setUsername(username);
     setPassword(password);
   }
+  
+	public Player getPlayer()
+	{
+		return player;
+	}
+	
+	public void setPlayer(Player player)
+	{
+		this.player = player;
+	}
 
 }
