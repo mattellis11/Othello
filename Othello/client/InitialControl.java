@@ -26,7 +26,7 @@ public class InitialControl implements ActionListener
 		if (command.equals("Login"))
 		{			
 			CardLayout cardLayout = (CardLayout) container.getLayout(); // grab the layout manager
-	    cardLayout.show(container, "2"); // show LoginPanel
+	    cardLayout.show(container, "login"); // show LoginPanel
 
 		}
 
@@ -34,7 +34,7 @@ public class InitialControl implements ActionListener
 		else if (command.equals("Create"))
 		{			
 			CardLayout cardLayout = (CardLayout) container.getLayout();
-			cardLayout.show(container, "3");
+			cardLayout.show(container, "create");
 		}
 
 	}
