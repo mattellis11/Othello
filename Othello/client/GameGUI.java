@@ -17,8 +17,7 @@ public class GameGUI extends JFrame
 		{
 			client.openConnection();
 		} catch (IOException e)
-		{
-			// TODO Auto-generated catch block
+		{			
 			e.printStackTrace();
 		}
 
@@ -51,14 +50,14 @@ public class GameGUI extends JFrame
 		JPanel view5 = new BoardPanel(bc);
 
 		// Add the views to the card layout container.
-		container.add(view1, "1");
-		container.add(view2, "2");
-		container.add(view3, "3");
-		container.add(view4, "4");
-		container.add(view5, "5");
+		container.add(view1, "initial");
+		container.add(view2, "login");
+		container.add(view3, "create");
+		container.add(view4, "lobby");
+		container.add(view5, "board");
 		
 	  // Show the initial view in the card layout.
-    cardLayout.show(container, "1");
+    cardLayout.show(container, "initial");
     
     // Add the card layout container to the JFrame.
     // GridBagLayout makes the container stay centered in the window.
@@ -66,7 +65,7 @@ public class GameGUI extends JFrame
     this.add(container);
 
     // Show the JFrame.
-    this.setSize(750, 550);
+    this.setSize(750, 625);
     this.setVisible(true);
     this.setLocationRelativeTo(null); // Centers JFrame on display
     
