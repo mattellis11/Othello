@@ -21,13 +21,15 @@ public class GameServer extends AbstractServer
 	private boolean running = false;
 	private Database database;
 	private GameMaster gameMaster;
-	private ArrayList<String> onlinePlayers;
-	private ArrayList<Player> waitingList;
+	private ArrayList<Player> online;
+	private ArrayList<Player> waiting;
 
 	public GameServer()
 	{
 		super(8300);
 		this.setTimeout(500);
+		online = new ArrayList<>();
+		waiting = new ArrayList<>();
 	}
 
 	@Override
@@ -39,6 +41,7 @@ public class GameServer extends AbstractServer
 			// Check the username and password with the database.
 			LoginData data = (LoginData) arg0;
 			Object result;
+			
 			// Create database query to verify Login credentials.
 			String query = String.format("select username, aes_decrypt(password, 'passkey') from user where username='%s'",
 					data.getUsername());
@@ -54,19 +57,43 @@ public class GameServer extends AbstractServer
 				// Check database password against password supplied by client
 				if (credentals[1].equals(data.getPassword()))
 				{
-					result = "LoginSuccessful";
-	        log.append("Client " + arg1.getId() + " successfully logged in as " + data.getUsername() + "\n");
-				} else
+					log.append("Client " + arg1.getId() + " successfully logged in as " + data.getUsername() + "\n");
+					
+					// Create player object
+					Player player = new Player(data.getUsername(), arg1.getId());
+					data.setPlayer(player); // add player to login data
+					
+					// Send LoginData back to client. Receipt of LoginData by client indicates successful login.
+					result = data;
+	        
+	        // Add client to online players	        
+					online.add(player);
+					
+					// Send updated list to all clients.
+					GameLobbyData lobbyData = new GameLobbyData(online, waiting);
+					if (getNumberOfClients() < 2)
+						try
+						{
+							arg1.sendToClient(lobbyData);
+						} catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+					else
+						sendToAllClients(lobbyData);
+				} 
+				else
 				{
 					result = new Error("The username and password are incorrect.", "Login");
 	        log.append("Client " + arg1.getId() + " failed to log in\n");
 				}
-			} else // queryResults == null
+			} 
+			else // queryResults == null
 			{
 				result = new Error("The username doesn't exist.", "Login");
         log.append("Client " + arg1.getId() + " attempted to log in with an unknown username.\n");
 			}
-			
+						
 			// Send the result to the client.
       try
       {
@@ -77,7 +104,8 @@ public class GameServer extends AbstractServer
         return;
       }
 			
-		} else if (arg0 instanceof CreateAccountData)
+		} 
+		else if (arg0 instanceof CreateAccountData)
 		{
 			CreateAccountData data = (CreateAccountData) arg0;
 			Object result;
@@ -88,7 +116,8 @@ public class GameServer extends AbstractServer
 				database.executeDML(dml);
         result = "CreateAccountSuccessful";
         log.append("Client " + arg1.getId() + " created a new account called " + data.getUsername() + "\n");
-			} catch (SQLException e1) // Could not add user to database
+			} 
+			catch (SQLException e1) // Could not add user to database
 			{
 				result = new Error("The username is already in use.", "CreateAccount");
         log.append("Client " + arg1.getId() + " failed to create a new account\n");
@@ -113,53 +142,93 @@ public class GameServer extends AbstractServer
 			if (data.getPlayer2() == null)
 			{
 				// Store sender's client id in player1 object.
-				data.getPlayer1().setClientID(arg1.getId());
+				//data.getPlayer1().setClientID(arg1.getId());
 				
 				// Add client to waitingList
-				waitingList.add(data.getPlayer1());
+				waiting.add(data.getPlayer1());
 				
-				// Send waiting list to all clients.
-				
-			}
-			// Case: A client has pressed 'Join Game'.
-			else if (data.getPlayer2() != null)
+				// Send updated list to all clients.
+				GameLobbyData lobbyData = new GameLobbyData(online, waiting);
+				if (getNumberOfClients() < 2)
+					try
+					{
+						arg1.sendToClient(lobbyData);
+					} catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+				else
+					sendToAllClients(lobbyData);				
+			}			
+			else if (data.getPlayer2() != null) // Case: A client has pressed 'Join Game'
 			{
+				/*
+				 * need to remove player1 from waiting list
+				 * send updated list to clients, GameLobbyData(online, waiting) to clients
+				 */
+				
+				
 				// Create a new game.
-				GameData newGame = gameMaster.newGame();
+				GameData newGame = gameMaster.newGame(data.getPlayer1(), data.getPlayer2());
 				
-				// Set the players
-				newGame.setPlayer1(data.getPlayer1());
-				newGame.setPlayer2(data.getPlayer2());
+				// Determine first player (black).
+				Player first = newGame.getPlayer1().getColor() == 1 ? newGame.getPlayer1() : newGame.getPlayer2();
 				
-				// Player1 will play black. Player2 will play white.
-				newGame.getPlayer1().setColor(1);
-				newGame.getPlayer2().setColor(0);
+				// Get clients' connections.
+				Thread player1 = getClient(newGame.getPlayer1().getClientID());
+				Thread player2 = getClient(newGame.getPlayer2().getClientID());
 				
-				// By default, GameData activePlayer data field is set to false.
-				// First send GameData to player2.
-				ConnectionToClient player2 = getClient(newGame.getPlayer2().getClientID());
-				try
+				// By default, GameData activePlayer data field is set to false. Send white the new game data.
+				if (newGame.getPlayer1() != first)
 				{
-					player2.sendToClient(newGame);
-				} catch (IOException e)
+					try
+					{
+						((ConnectionToClient) player1).sendToClient(newGame);
+					} 
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+				}
+				else
 				{
-					e.printStackTrace();
+					try
+					{
+						((ConnectionToClient) player2).sendToClient(newGame);
+					} 
+					catch (IOException e)
+					{					
+						e.printStackTrace();
+					}
 				}
 				
-				// Prepare GameData for player1.
+				// Prepare GameData for black.
 				newGame.setActivePlayer(true);
-				int[][] availableMoves = gameMaster.availableMoves(newGame.getBoardState(), newGame.getPlayer1().getColor());
-				newGame.setValidMoves(availableMoves);
-				
-				// Send GameData to player1.
-				ConnectionToClient player1 = getClient(newGame.getPlayer1().getClientID());
-				try
+								
+				// Send GameData to black.
+				if (newGame.getPlayer1() == first)
 				{
-					player1.sendToClient(newGame);
-				} catch (IOException e)
-				{					
-					e.printStackTrace();
+					try
+					{
+						((ConnectionToClient) player1).sendToClient(newGame);
+					} 
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
 				}
+				else
+				{
+					try
+					{
+						((ConnectionToClient) player2).sendToClient(newGame);
+					} 
+					catch (IOException e)
+					{					
+						e.printStackTrace();
+					}
+				}
+				
 			}
 		}
 		
@@ -172,14 +241,15 @@ public class GameServer extends AbstractServer
 			Player player = data.getPlayer1().getClientID() == arg1.getId() ? data.getPlayer1() : data.getPlayer2();
 						
 			// Process new move.
-			gameMaster.placePiece(data, player.getColor());
+			data = gameMaster.placePiece(data, player.getColor());
 			
 			// Set active player to false, and return GameData to sender.
 			data.setActivePlayer(false);
 			try
 			{
 				arg1.sendToClient(data);
-			} catch (IOException e)
+			} 
+			catch (IOException e)
 			{
 				e.printStackTrace();
 			}
@@ -189,32 +259,31 @@ public class GameServer extends AbstractServer
 			
 			// Get opponents clientId and ConnectToClient object
 			long clientId = data.getOpponent(arg1.getId());
-			ConnectionToClient opponent = getClient(clientId);
+			Thread opponent = getClient(clientId);
 			
 			// Send GameData to opponent.
 			try
 			{
-				opponent.sendToClient(data);
-			} catch (IOException e)
+				((ConnectionToClient) opponent).sendToClient(data);
+			} 
+			catch (IOException e)
 			{				
 				e.printStackTrace();
-			}			
-		
+			}		
 			
 		}
 			
 	}
 	
 	// Returns ConnectionToClient object given the clientId.
-	private ConnectionToClient getClient(long clientId)
+	private Thread getClient(long clientId)
 	{
-		ConnectionToClient[] clients = (ConnectionToClient[]) getClientConnections();
-		for (ConnectionToClient client: clients)
+		Thread[] clients = getClientConnections();
+		for (Thread client: clients)
 		{
-			if (client.getId() == clientId) return client;
-				
+			if (client.getId() == clientId) return client;				
 		}
-		return null;
+		return null; // client not found
 	}
 
 	// When the server starts, update the GUI.
@@ -243,10 +312,29 @@ public class GameServer extends AbstractServer
 		log.append("Server and all current clients are closed - press Listen to restart\n");
 	}
 
-	// When a client connects or disconnects, display a message in the log.
+	// When a client connects, display a message in the log.
 	public void clientConnected(ConnectionToClient client)
 	{
 		log.append("Client " + client.getId() + " connected\n");
+	}
+	
+	// When a client disconnects, remove from online list.
+	public void clientDisconnected(ConnectionToClient client)
+	{
+		log.append("Client " + client.getId() + " disconnected\n");
+		long clientId = client.getId();
+		for (int i = 0; i < online.size(); i++)
+		{
+			if (online.get(i).getClientID() == clientId)
+			{
+				online.remove(i);
+				break;
+			}
+		}
+		
+		// Send updated list to all clients.
+		GameLobbyData gld = new GameLobbyData(online, waiting);
+		sendToAllClients(gld);
 	}
 
 	// Method that handles listening exceptions by displaying exception information.
