@@ -16,11 +16,6 @@ public class GameMaster
 	private static final int VALID = 99;
 	
 		
-	public GameMaster()
-	{
-		
-	}
-	
 	// Method for initializing a new game. Sets starting positions and scores.
 	public GameData newGame(Player player1, Player player2)
 	{		
@@ -48,7 +43,7 @@ public class GameMaster
 		// Initialize available moves for black.
 		int[][] available = availableMoves(boardState, BLACK);
 		
-		// Assign players their color.
+		// Randomly assign players their color.
 		int player1Color = (int) (Math.random() * 2);
 		int player2Color = player1Color == BLACK ? WHITE : BLACK;
 		player1.setColor(player1Color);
@@ -455,16 +450,16 @@ public class GameMaster
 			chkPos.x = chkPos.x + 1;
 			chkPos.y = chkPos.y + 1;
 			
+			// If new position is the player's color or is off the board, no valid move exists.
+			if (chk4OutOfBounds(chkPos) || state[chkPos.y][chkPos.x] == color)
+			{
+				return null;
+			}
+			
 			// If new position is an empty square, then it is a valid move.
 			if (state[chkPos.y][chkPos.x] == EMPTY)
 			{
 				return chkPos;
-			}
-			
-			// If new position is the player's color or is off the board, no valid move exists.
-			if (state[chkPos.y][chkPos.x] == color || chk4OutOfBounds(chkPos))
-			{
-				return null;
 			}
 		}
 		
@@ -488,16 +483,16 @@ public class GameMaster
 			chkPos.x = chkPos.x;
 			chkPos.y = chkPos.y + 1;
 			
+			// If new position is the player's color or is off the board, no valid move exists.
+			if (chk4OutOfBounds(chkPos) || state[chkPos.y][chkPos.x] == color)
+			{
+				return null;
+			}
+			
 			// If new position is an empty square, then it is a valid move.
 			if (state[chkPos.y][chkPos.x] == EMPTY)
 			{
 				return chkPos;
-			}
-			
-			// If new position is the player's color or is off the board, no valid move exists.
-			if (state[chkPos.y][chkPos.x] == color || chk4OutOfBounds(chkPos))
-			{
-				return null;
 			}
 		}
 		
@@ -521,16 +516,16 @@ public class GameMaster
 			chkPos.x = chkPos.x - 1;
 			chkPos.y = chkPos.y + 1;
 			
+			// If new position is the player's color or is off the board, no valid move exists.
+			if (chk4OutOfBounds(chkPos) || state[chkPos.y][chkPos.x] == color)
+			{
+				return null;
+			}
+			
 			// If new position is an empty square, then it is a valid move.
 			if (state[chkPos.y][chkPos.x] == EMPTY)
 			{
 				return chkPos;
-			}
-			
-			// If new position is the player's color or is off the board, no valid move exists.
-			if (state[chkPos.y][chkPos.x] == color || chk4OutOfBounds(chkPos))
-			{
-				return null;
 			}
 		}
 		
@@ -554,16 +549,16 @@ public class GameMaster
 			chkPos.x = chkPos.x + 1;
 			chkPos.y = chkPos.y;
 			
+			// If new position is the player's color or is off the board, no valid move exists.
+			if (chk4OutOfBounds(chkPos) || state[chkPos.y][chkPos.x] == color)
+			{
+				return null;
+			}
+			
 			// If new position is an empty square, then it is a valid move.
 			if (state[chkPos.y][chkPos.x] == EMPTY)
 			{
 				return chkPos;
-			}
-			
-			// If new position is the player's color or is off the board, no valid move exists.
-			if (state[chkPos.y][chkPos.x] == color || chk4OutOfBounds(chkPos))
-			{
-				return null;
 			}
 		}
 		
@@ -587,16 +582,16 @@ public class GameMaster
 			chkPos.x = chkPos.x - 1;
 			chkPos.y = chkPos.y;
 			
+			// If new position is the player's color or is off the board, no valid move exists.
+			if (chk4OutOfBounds(chkPos) || state[chkPos.y][chkPos.x] == color)
+			{
+				return null;
+			}
+			
 			// If new position is an empty square, then it is a valid move.
 			if (state[chkPos.y][chkPos.x] == EMPTY)
 			{
 				return chkPos;
-			}
-			
-			// If new position is the player's color or is off the board, no valid move exists.
-			if (state[chkPos.y][chkPos.x] == color || chk4OutOfBounds(chkPos))
-			{
-				return null;
 			}
 		}
 		
@@ -620,16 +615,16 @@ public class GameMaster
 			chkPos.x = chkPos.x + 1;
 			chkPos.y = chkPos.y - 1;
 			
+			// If new position is the player's color or is off the board, no valid move exists.
+			if (chk4OutOfBounds(chkPos) || state[chkPos.y][chkPos.x] == color)
+			{
+				return null;
+			}
+			
 			// If new position is an empty square, then it is a valid move.
 			if (state[chkPos.y][chkPos.x] == EMPTY)
 			{
 				return chkPos;
-			}
-			
-			// If new position is the player's color or is off the board, no valid move exists.
-			if (state[chkPos.y][chkPos.x] == color || chk4OutOfBounds(chkPos))
-			{
-				return null;
 			}
 		}
 		
@@ -653,16 +648,16 @@ public class GameMaster
 			chkPos.x = chkPos.x;
 			chkPos.y = chkPos.y - 1;
 			
+			// If new position is the player's color or is off the board, no valid move exists.
+			if (chk4OutOfBounds(chkPos) || state[chkPos.y][chkPos.x] == color)
+			{
+				return null;
+			}
+			
 			// If new position is an empty square, then it is a valid move.
 			if (state[chkPos.y][chkPos.x] == EMPTY)
 			{
 				return chkPos;
-			}
-			
-			// If new position is the player's color or is off the board, no valid move exists.
-			if (state[chkPos.y][chkPos.x] == color || chk4OutOfBounds(chkPos))
-			{
-				return null;
 			}
 		}
 		
@@ -686,17 +681,17 @@ public class GameMaster
 			chkPos.x = chkPos.x - 1;
 			chkPos.y = chkPos.y - 1;
 			
+			// If new position is the player's color or is off the board, no valid move exists.
+			if (chk4OutOfBounds(chkPos) || state[chkPos.y][chkPos.x] == color)
+			{
+				return null;
+			}
+			
 			// If new position is an empty square, then it is a valid move.
 			if (state[chkPos.y][chkPos.x] == EMPTY)
 			{
 				return chkPos;
-			}
-			
-			// If new position is the player's color or is off the board, no valid move exists.
-			if (state[chkPos.y][chkPos.x] == color || chk4OutOfBounds(chkPos))
-			{
-				return null;
-			}
+			}			
 		}
 		
 		// Check position wasn't opponents color, and thus could not lead to a valid move.
