@@ -118,7 +118,8 @@ public class GameLobbyControl implements ActionListener
 	}
 
 	public void startGame()
-	{
+	{		
+		// Show board panel.
 		CardLayout layout = (CardLayout) container.getLayout();
 		layout.show(container, "board");
 	}
