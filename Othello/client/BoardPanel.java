@@ -91,6 +91,7 @@ public class BoardPanel extends JPanel
 		southPanel.add(gameInfo);
 		this.add(southPanel, BorderLayout.SOUTH);
 		
+		this.setPreferredSize(new Dimension(750, 550)); // not needed, set by container.
 		this.setVisible(true);		
 		
 	}
