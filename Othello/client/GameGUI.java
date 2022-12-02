@@ -9,10 +9,10 @@ import javax.swing.JPanel;
 
 public class GameGUI extends JFrame
 {
-	public GameGUI()
+	public GameGUI(String address)
 	{
 		// Set up game client.
-		GameClient client = new GameClient();
+		GameClient client = new GameClient(address);
 		try
 		{
 			client.openConnection();
@@ -74,7 +74,7 @@ public class GameGUI extends JFrame
  //Main function that creates the client GUI when the program is started.
  public static void main(String[] args)
  {
-   new GameGUI();
+   new GameGUI(args[0]); // args[0] is server address
  }
 
 }
