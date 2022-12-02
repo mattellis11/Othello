@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import server.GameData;
@@ -131,5 +132,39 @@ public class BoardControl implements ActionListener
 	{
 		return data;
 	}
+	
+	public void gameOver()
+	{		
+		String message;
+		GameData data = getGameData();
+		int finalBlackScore = data.getBlackScore();
+		int finalWhiteScore = data.getWhiteScore();
+		String blackPlayerUsername;
+		String whitePlayerUsername;
+		if (data.getPlayer1().getColor() == BLACK)
+		{
+			blackPlayerUsername = data.getPlayer1().getUsername();
+			whitePlayerUsername = data.getPlayer2().getUsername();
+		}
+		else
+		{
+			blackPlayerUsername = data.getPlayer2().getUsername();
+			whitePlayerUsername = data.getPlayer1().getUsername();
+		}
+		if (finalBlackScore > finalWhiteScore)
+		{
+			message = String.format("%s wins!", blackPlayerUsername);
+		}
+		else
+		{
+			message = String.format("%s wins!", whitePlayerUsername);
+		}
+		JOptionPane.showMessageDialog(null, message, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+		
+		// Return to GameLobbyPanel.
+    CardLayout cardLayout = (CardLayout)container.getLayout();
+    cardLayout.show(container, "lobby");
+	}	
+	
 
 }
