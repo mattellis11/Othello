@@ -4,10 +4,8 @@ import java.awt.Color;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
-
 import client.CreateAccountData;
 import client.GameLobbyData;
 import client.LoginData;
@@ -20,16 +18,14 @@ public class GameServer extends AbstractServer
 	private JLabel status;
 	private boolean running = false;
 	private Database database;
-	private GameMaster gameMaster;
-	private ArrayList<Player> online;
-	private ArrayList<Player> waiting;
+	private GameMaster master;
+	private ArrayList<Player> online = new ArrayList<>();
+	private ArrayList<Player> waiting = new ArrayList<>();
 
 	public GameServer()
 	{
 		super(8300);
 		this.setTimeout(500);
-		online = new ArrayList<>();
-		waiting = new ArrayList<>();
 	}
 
 	@Override
@@ -141,9 +137,6 @@ public class GameServer extends AbstractServer
 			// Case: A client has pressed 'Start Game'.
 			if (data.getPlayer2() == null)
 			{
-				// Store sender's client id in player1 object.
-				//data.getPlayer1().setClientID(arg1.getId());
-				
 				// Add client to waitingList
 				waiting.add(data.getPlayer1());
 				
@@ -159,17 +152,12 @@ public class GameServer extends AbstractServer
 					}
 				else
 					sendToAllClients(lobbyData);				
-			}			
-			else if (data.getPlayer2() != null) // Case: A client has pressed 'Join Game'
+			}
+			// Case: A client has pressed 'Join Game'.
+			else if (data.getPlayer2() != null)
 			{
-				/*
-				 * need to remove player1 from waiting list
-				 * send updated list to clients, GameLobbyData(online, waiting) to clients
-				 */
-				
-				
 				// Create a new game.
-				GameData newGame = gameMaster.newGame(data.getPlayer1(), data.getPlayer2());
+				GameData newGame = master.newGame(data.getPlayer1(), data.getPlayer2());
 				
 				// Determine first player (black).
 				Player first = newGame.getPlayer1().getColor() == 1 ? newGame.getPlayer1() : newGame.getPlayer2();
@@ -178,7 +166,7 @@ public class GameServer extends AbstractServer
 				Thread player1 = getClient(newGame.getPlayer1().getClientID());
 				Thread player2 = getClient(newGame.getPlayer2().getClientID());
 				
-				// By default, GameData activePlayer data field is set to false. Send white the new game data.
+				// Initially activePlayer data field is set to false. Send white the new game data.
 				if (newGame.getPlayer1() != first)
 				{
 					try
@@ -238,42 +226,96 @@ public class GameServer extends AbstractServer
 			GameData data = (GameData) arg0;
 			
 			// Get player that sent the move.
-			Player player = data.getPlayer1().getClientID() == arg1.getId() ? data.getPlayer1() : data.getPlayer2();
+			Player sender = data.getPlayer1().getClientID() == arg1.getId() ? data.getPlayer1() : data.getPlayer2();
 						
-			// Process new move.
-			data = gameMaster.placePiece(data, player.getColor());
+			// Process new move and update game state for the opponent.
+			master.placePiece(data, sender.getColor());
 			
-			// Set active player to false, and return GameData to sender.
-			data.setActivePlayer(false);
-			try
-			{
-				arg1.sendToClient(data);
-			} 
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-			
-			// Set active player to true, and send GameData to opponent.
-			data.setActivePlayer(true);
-			
-			// Get opponents clientId and ConnectToClient object
+			// Get the connection for the opponent.
 			long clientId = data.getOpponent(arg1.getId());
 			Thread opponent = getClient(clientId);
 			
-			// Send GameData to opponent.
-			try
+			// Check if there are available moves for the opponent.
+			if (data.isMoveAvailable())
 			{
-				((ConnectionToClient) opponent).sendToClient(data);
-			} 
-			catch (IOException e)
-			{				
-				e.printStackTrace();
-			}		
-			
+				// Set active player to false, and return GameData to sender.
+				data.setActivePlayer(false);
+				try
+				{
+					arg1.sendToClient(data);
+				} 
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+				
+				// Set active player to true, and send GameData to opponent.
+				data.setActivePlayer(true);
+				try
+				{
+					((ConnectionToClient) opponent).sendToClient(data);
+				} 
+				catch (IOException e)
+				{				
+					e.printStackTrace();
+				}
+			}
+			// Opponent had no legal moves.
+			else
+			{
+				// Calculate available moves for the player who made the last move.
+				master.setAvailableMoves(data, sender.getColor());
+				
+				// Check for available moves, if none then the end of game is triggered.
+				if (data.isMoveAvailable())
+				{
+					// Set active player to false, and send to opponent.
+					data.setActivePlayer(false);
+					try
+					{
+						((ConnectionToClient) opponent).sendToClient(data);
+					} 
+					catch (IOException e)
+					{				
+						e.printStackTrace();
+					}
+					
+					// Set active player to true, and send GameData to player who made the last move.
+					data.setActivePlayer(true);
+					try
+					{
+						arg1.sendToClient(data);
+					} 
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+				}
+				// Neither player can make a move.
+				else
+				{
+					data.setGameOver(true);
+					try
+					{
+						arg1.sendToClient(data);
+					} catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+					try
+					{
+						((ConnectionToClient) opponent).sendToClient(data);
+					} catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			}			
 		}
+		
 			
 	}
+	
 	
 	// Returns ConnectionToClient object given the clientId.
 	private Thread getClient(long clientId)
@@ -285,6 +327,7 @@ public class GameServer extends AbstractServer
 		}
 		return null; // client not found
 	}
+	
 
 	// When the server starts, update the GUI.
 	public void serverStarted()
@@ -294,6 +337,7 @@ public class GameServer extends AbstractServer
 		status.setForeground(Color.GREEN);
 		log.append("Server started\n");
 	}
+	
 
 	// When the server stops listening, update the GUI.
 	public void serverStopped()
@@ -302,6 +346,7 @@ public class GameServer extends AbstractServer
 		status.setForeground(Color.RED);
 		log.append("Server stopped accepting new clients - press Listen to start accepting new clients\n");
 	}
+	
 
 	// When the server closes completely, update the GUI.
 	public void serverClosed()
@@ -311,12 +356,14 @@ public class GameServer extends AbstractServer
 		status.setForeground(Color.RED);
 		log.append("Server and all current clients are closed - press Listen to restart\n");
 	}
+	
 
 	// When a client connects, display a message in the log.
 	public void clientConnected(ConnectionToClient client)
 	{
 		log.append("Client " + client.getId() + " connected\n");
 	}
+	
 	
 	// When a client disconnects, remove from online list.
 	public void clientDisconnected(ConnectionToClient client)
@@ -336,6 +383,7 @@ public class GameServer extends AbstractServer
 		GameLobbyData gld = new GameLobbyData(online, waiting);
 		sendToAllClients(gld);
 	}
+	
 
 	// Method that handles listening exceptions by displaying exception information.
 	public void listeningException(Throwable exception)
@@ -346,32 +394,38 @@ public class GameServer extends AbstractServer
 		log.append("Listening exception: " + exception.getMessage() + "\n");
 		log.append("Press Listen to restart server\n");
 	}
+	
 
 	// Getter that returns whether the server is currently running.
 	public boolean isRunning()
 	{
 		return running;
 	}
+	
 
 	// Setters for the data fields corresponding to the GUI elements.
 	public void setLog(JTextArea log)
 	{
 		this.log = log;
 	}
+	
 
 	public void setStatus(JLabel status)
 	{
 		this.status = status;
 	}
 	
+	
 	public void setDatabase(Database database)
 	{
 		this.database = database;
 	}
+	
 
-	public void setGameMaster(GameMaster gameMaster)
+	public void setGameMaster(GameMaster master)
 	{
-		this.gameMaster = gameMaster;
+		this.master = master;
 	}
+	
 
 }
