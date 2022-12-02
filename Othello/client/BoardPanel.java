@@ -1,11 +1,8 @@
 package client;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
-
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -94,7 +91,6 @@ public class BoardPanel extends JPanel
 		southPanel.add(gameInfo);
 		this.add(southPanel, BorderLayout.SOUTH);
 		
-		this.setPreferredSize(new Dimension(750, 550)); // not needed, set by container.
 		this.setVisible(true);		
 		
 	}
@@ -113,8 +109,7 @@ public class BoardPanel extends JPanel
 	public void setInfo(String message)
 	{
 		gameInfo.setText(message);
-	}
-	
+	}	
 	
 
 }
