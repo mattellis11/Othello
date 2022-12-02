@@ -7,27 +7,25 @@ import java.io.Serializable;
 
 public class GameData implements Serializable
 {
-	Player player1;
-	Player player2; 	
-	int[][] boardState; // position of the pieces on the board
-	boolean activePlayer;
-	int [][] validMoves; // list of available moves for the active player
-	int blackScore;  
-	int whiteScore; 
-	Position move; // position of piece placed by the active player
+	private Player player1;
+	private Player player2; 	
+	private int[][] boardState; // position of the pieces on the board
+	private boolean activePlayer = false;
+	private int [][] validMoves; // list of available moves for the active player
+	private int blackScore = 2;  
+	private int whiteScore = 2; 
+	private Position move; // position of piece placed by the active player
+	private boolean gameOver = false;
+	private boolean moveAvailable = false;
 	
-	public GameData(Player player1, Player player2, int[][] boardState, int[][] validMoves)
+	
+	public GameData(Player player1, Player player2, int[][] boardState)
 	{
 		setPlayer1(player1);
 		setPlayer2(player2);
 		setBoardState(boardState);
-		setValidMoves(validMoves);
-		setBlackScore(2);
-		setWhiteScore(2);
-		setActivePlayer(false);
 	}
-	
-	
+		
 	public int[][] getBoardState()
 	{
 		return boardState;
@@ -111,6 +109,26 @@ public class GameData implements Serializable
 	public void setWhiteScore(int whiteScore)
 	{
 		this.whiteScore = whiteScore;
+	}
+
+	public boolean isGameOver()
+	{
+		return gameOver;
+	}
+
+	public void setGameOver(boolean gameOver)
+	{
+		this.gameOver = gameOver;
+	}
+
+	public boolean isMoveAvailable()
+	{
+		return moveAvailable;
+	}
+
+	public void setMoveAvailable(boolean moveAvailable)
+	{
+		this.moveAvailable = moveAvailable;
 	}	
 	
 }
