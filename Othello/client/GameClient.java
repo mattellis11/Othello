@@ -18,9 +18,9 @@ public class GameClient extends AbstractClient
 	private ArrayList<Player> waiting;
 		
 
-	GameClient()
+	GameClient(String host)
 	{
-		super("localhost", 8300);
+		super(host, 8300);
 	}
 
 	@Override
@@ -51,7 +51,6 @@ public class GameClient extends AbstractClient
 			LoginData data = (LoginData) arg0;
 			
 			// Send the player's username to the GameLobbyControl.
-			//gameLobbyControl.setUsername(data.getUsername());
 			gameLobbyControl.setPlayer(data.getPlayer());
 			
 			// Successfully logged in, tell the login controller.
@@ -76,6 +75,7 @@ public class GameClient extends AbstractClient
 				createAccountControl.displayError(error.getMessage());
 			}
 		}
+		// If receive GameLobbyData, then update the lobby.
 		else if (arg0 instanceof GameLobbyData)
 		{
 			GameLobbyData gld = (GameLobbyData) arg0;
@@ -85,10 +85,10 @@ public class GameClient extends AbstractClient
 		}
 		else if (arg0 instanceof GameData)
 		{			
-			// If first time receiving GameData
+			// First time receiving GameData
 			if (boardControl.getGameData() == null)
-			{
-				gameLobbyControl.startGame(); // load game panel
+			{				
+				gameLobbyControl.startGame();
 			}
 			
 			// Get the GameData object.
@@ -99,6 +99,9 @@ public class GameClient extends AbstractClient
 			
 			// Update the game state.
 			boardControl.setGameState();
+			
+			// Game over.
+			if (data.isGameOver()) boardControl.gameOver();
 		}
 
 	}
