@@ -1,1 +1,0 @@
-java -cp .;lib\ocsf.jar client.GameGUI localhost
